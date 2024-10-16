@@ -1,4 +1,4 @@
-/*Alumnos Grupo N°1:
+ï»¿/*Alumnos Grupo NÂ°1:
 Barrios, Enzo Tomas
 Bongiovanni, Iara Aylen
 Bret, Fatima Maria Luz
@@ -12,7 +12,7 @@ select * from netflix_titles order by show_id asc;
 UPDATE netflix_titles SET show_id = REPLACE(show_id,'s',' ') WHERE show_id LIKE 's%';
 ALTER TABLE netflix_titles ALTER COLUMN show_id INT NOT NULL
 
---Definición de datos
+--DefiniciÃ³n de datos
 --Tabla actor
 CREATE TABLE Actor(
   id_actor INT identity(1,1),
@@ -20,13 +20,21 @@ CREATE TABLE Actor(
   CONSTRAINT PK_id_actor PRIMARY KEY (id_actor)
 );
 
+--Tabla type
+CREATE TABLE Type(
+  id_type INT identity(1,1),
+  descripcion VARCHAR(50) NOT NULL,
+  CONSTRAINT PK_id_type PRIMARY KEY (id_type)
+);
+
 --Tabla contenido
 CREATE TABLE Contenido(
   id_contenido INT identity(1,1),
-  type VARCHAR(50) NOT NULL,
+  id_type int NOT NULL,
   rating VARCHAR(50) NOT NULL,
   date_added DATE NOT NULL,
-  CONSTRAINT PK_id_contenido PRIMARY KEY (id_contenido)
+  CONSTRAINT PK_id_contenido PRIMARY KEY (id_contenido),
+  CONSTRAINT FK_id_type FOREIGN KEY (id_type) REFERENCES type(id_type)
 );
 
 --Tabla country
@@ -84,41 +92,59 @@ CREATE TABLE Genero(
   CONSTRAINT FK_id_show_genero FOREIGN KEY (id_show) REFERENCES Show(id_show)
 );
 
+
 --Carga de datos
 insert into country(nombre)
 values ((select country from netflix_titles WHERE show_id = 2));
-select * from country
-INSERT INTO Country (nombre)
-VALUES ('India'),
-	('United Kingdom'),
-	('France');
 
-INSERT INTO Director (nomyape)
-VALUES ('Kirsten Johnson'),
-		('Julien Leclercq'),
-		('Mike Flanagan'),
-		('Robert Cullen, José Luis Ucha'),
-		('Haile Gerima');
-select * from Director
+select distinct director from netflix_titles order by director ASC
 
-INSERT INTO Contenido (type, rating, date_added)
-VALUES ('Movie', 'PG-13', '2021-09-25'),
-		('TV Show', 'TV-MA', '2021-09-24'),
-		('Movie', 'PG', '2021-09-24'),
-		('Movie', 'TV-MA', '2021-09-24'),
-		('TV Show', 'TV-14', '2021-09-24');
-select * from Contenido
+--ingreso lote de director
+INSERT INTO director (nomyape)
+SELECT DISTINCT TRIM(value)  
+FROM dbo.netflix_titles
+CROSS APPLY STRING_SPLIT(netflix_titles.director, ',');
 
-INSERT INTO Actor (nomyape)
-VALUES ('Ama Qamata'),
-		('Khosi Ngema'),
-		('Gail Mabalane'),
-		('Thabang Molaba'),
-		('Dillon Windvogel'),
-		('Sami Bouajila'),
-		('Tracy Gotoas'),
-		('Samuel Jouy'),
-		('Nabiha Akkari'),
-		('Sofiane Zermani');
-select * from Actor
+select distinct nomyape from director
+select * from Director order by nomyape asc
+
+
+--ingreso lote de actor
+INSERT INTO actor (nomyape)
+SELECT DISTINCT TRIM(value)  
+FROM dbo.netflix_titles
+CROSS APPLY STRING_SPLIT(netflix_titles.cast, ',');
+
+select distinct nomyape from actor order by nomyape asc
+select * from actor order by nomyape asc
+
+
+--ingreso lote de genero
+INSERT INTO Genero(descripcion)
+SELECT DISTINCT TRIM(value)  
+FROM dbo.netflix_titles
+CROSS APPLY STRING_SPLIT(netflix_titles.listed_in, ',');
+
+select distinct descripcion from genero order by descripcion asc
+select * from genero order by descripcion asc
+
+
+--ingreso lote de type
+INSERT INTO Type(descripcion)
+SELECT DISTINCT TRIM(value)  
+FROM dbo.netflix_titles
+CROSS APPLY STRING_SPLIT(netflix_titles.type, ',');
+
+select distinct descripcion from type order by descripcion asc
+select * from type order by descripcion asc
+
+
+--ingreso lote de country
+INSERT INTO Country(nombre)
+SELECT DISTINCT TRIM(value)  
+FROM dbo.netflix_titles
+CROSS APPLY STRING_SPLIT(netflix_titles.country, ',');
+
+select distinct nombre from Country order by nombre asc
+select * from Country order by nombre asc
 
